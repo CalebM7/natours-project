@@ -11,6 +11,7 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use(express.static(`${__dirname}/public`)); // Serve static files from the 'public' directory
+app.use('/.well-known', express.static(`${__dirname}/.well-known`));
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware! 👋');
@@ -27,3 +28,5 @@ app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
 module.exports = app;
+
+
