@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
 
-// Define a simple Mongoose schema and model
+// Define the Mongoose schema for a tour
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -12,7 +11,6 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxlength: [40, 'A tour name must have less or equal then 40 characters'],
       minlength: [10, 'A tour name must have more or equal then 10 characters'],
-      // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
     slug: String,
     duration: {
@@ -28,8 +26,8 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a difficulty'],
       enum: {
         values: ['easy', 'medium', 'difficult'],
-        message: 'Difficulty is either: easy, medium, difficult'
-      }
+        message: 'Difficulty is either: easy, medium, difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
@@ -48,12 +46,12 @@ const tourSchema = new mongoose.Schema(
     priceDiscount: {
       type: Number,
       validate: {
-        validator: function(val) {
-        // this only points to current doc on NEW document creation
-        return val < this.price; 
+        validator: function (val) {
+          // this only points to current doc on NEW document creation
+          return val < this.price;
+        },
+        message: 'Discount price ({VALUE}) should be below regular price',
       },
-        message: 'Discount price ({VALUE}) should be below regular price'
-      }   
     },
     summary: {
       type: String,
@@ -86,28 +84,20 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// Virtual property to get the duration in weeks
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
+// Create a slug from the name before saving the document
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
 
-// tourSchema.pre('save', function(next) {
-//   console.log('Will save document..');
-//   next();
-// })
-
-// tourSchema.post('save', function(doc, next) {
-//   console.log(doc);
-//   next();
-// })
-
-// QUERY MIDDLEWARE
-// tourSchema.pre('find', function (next){
+// QUERY MIDDLEWARE: runs before any find query
+// Filter out secret tours from the results
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
 
@@ -115,18 +105,20 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+// Log the time it took to execute the query
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
   next();
 });
 
 // AGGREGATION MIDDLEWARE
+// Filter out secret tours from aggregation pipelines
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
 
   console.log(this.pipeline());
   next();
-})
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 

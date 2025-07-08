@@ -1,11 +1,7 @@
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 
-// Read the tours data once when the application starts
-// const tours = JSON.parse(
-//   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-// );
-
+// Middleware to alias top tours
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
   req.query.sort = '-ratingsAverage,price';
@@ -13,6 +9,7 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
+// Get all tours with filtering, sorting, field limiting, and pagination
 exports.getAllTours = async (req, res) => {
   try {
     // EXECUTE QUERY
@@ -26,7 +23,7 @@ exports.getAllTours = async (req, res) => {
     // SEND RESPONSE
     res.status(200).json({
       status: 'success',
-      results: tours.length, // 'results' is more common for array length than 'result'
+      results: tours.length,
       data: {
         tours,
       },
@@ -39,10 +36,7 @@ exports.getAllTours = async (req, res) => {
   }
 };
 
-// GET a single tour by ID
-// The ':id' is a URL parameter that will be available in req.params.id
-
-// ROUTE HANDLER FUNCTIONS
+// Get a single tour by its ID
 exports.getTour = async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
@@ -51,7 +45,7 @@ exports.getTour = async (req, res) => {
     res.status(200).json({
       status: 'success',
       data: {
-        tour, // The tour object retrieved from the database
+        tour,
       },
     });
   } catch (err) {
@@ -62,6 +56,7 @@ exports.getTour = async (req, res) => {
   }
 };
 
+// Create a new tour
 exports.createTour = async (req, res) => {
   try {
     // const newTour = new Tour({})
@@ -69,7 +64,6 @@ exports.createTour = async (req, res) => {
 
     const newTour = await Tour.create(req.body);
 
-    // Send a 201 Created status code for successful resource creation
     res.status(201).json({
       status: 'success',
       data: {
@@ -84,6 +78,7 @@ exports.createTour = async (req, res) => {
   }
 };
 
+// Update a tour by its ID
 exports.updateTour = async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
@@ -104,6 +99,7 @@ exports.updateTour = async (req, res) => {
   }
 };
 
+// Delete a tour by its ID
 exports.deleteTour = async (req, res) => {
   try {
     await Tour.findByIdAndDelete(req.params.id);
@@ -120,6 +116,7 @@ exports.deleteTour = async (req, res) => {
   }
 };
 
+// Get tour statistics using an aggregation pipeline
 exports.getTourStats = async (req, res) => {
   try {
     const stats = await Tour.aggregate([
@@ -142,9 +139,6 @@ exports.getTourStats = async (req, res) => {
           avgPrice: 1,
         },
       },
-      // {
-      //   $match: { _id: { $ne: 'EASY' }}
-      // }
     ]);
 
     res.status(200).json({
@@ -161,6 +155,7 @@ exports.getTourStats = async (req, res) => {
   }
 };
 
+// Get a monthly plan of tours for a given year
 exports.getMonthlyPlan = async (req, res) => {
   try {
     const year = req.params.year * 1; // 2021
@@ -196,8 +191,8 @@ exports.getMonthlyPlan = async (req, res) => {
         $sort: { numToursStarts: -1 },
       },
       {
-        $limit: 12
-      }
+        $limit: 12,
+      },
     ]);
 
     res.status(200).json({
@@ -213,3 +208,4 @@ exports.getMonthlyPlan = async (req, res) => {
     });
   }
 };
+
