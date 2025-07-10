@@ -10,14 +10,18 @@ const DB = process.env.DATABASE.replace(
 
 console.log('Connecting with URL:', DB);
 // Connect to MongoDB
-mongoose
-  .connect(DB)
-  .then(() => console.log('DB connection successful! 🎉'));
-
+mongoose.connect(DB).then(() => console.log('DB connection successful! 🎉'));
 
 // Start the server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
+process.on('unhandledRejection', (err) => {
+  console.log(err.name, err.message);
+  console.log('UNHANDLER REJECTION 💥 Shutting down...');
+  server.close(() => {
+    process.exit(1); // Exit the process with failure
+  });
+});
