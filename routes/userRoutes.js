@@ -1,5 +1,7 @@
 const express = require('express');
 const userController = require('./../controllers/userController');
+const authController = require('./../controllers/authController');
+
 
 // --- Route Handlers ---
 
@@ -10,6 +12,9 @@ const userController = require('./../controllers/userController');
 // app.delete('/api/v1/tours/:id', deleteTour);
 
 const router = express.Router();
+
+router.post('/signup', authController.signup);
+
 router
   .route('/')
   .get(userController.getAllUsers)
