@@ -19,6 +19,8 @@ app.use('/.well-known', express.static(`${__dirname}/.well-known`));
 // Middleware to add a timestamp to each request
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  //console.log(req.headers);
+
   next();
 });
 
