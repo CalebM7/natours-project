@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -14,7 +15,6 @@ const app = express();
 // 1) GLOBAL MIDDLEWARES
 // Set security HTTP headers
 app.use(helmet());
-
 
 // Middleware to log requests in development mode
 if (process.env.NODE_ENV === 'development') {
@@ -30,7 +30,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Middleware to parse JSON bodies, reading data from body into req.body
-app.use(express.json({ limit: '10kb' })); 
+app.use(express.json({ limit: '10kb' }));
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -38,8 +38,22 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use(xss());
 
+// Prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
+
 // Serve static files from the 'public' directory
-app.use(express.static(`${__dirname}/public`)); 
+app.use(express.static(`${__dirname}/public`));
 app.use('/.well-known', express.static(`${__dirname}/.well-known`));
 
 // Middleware to add a timestamp to each request
